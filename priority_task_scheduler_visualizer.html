@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Priority-Based Task Scheduling — Animated Visualizer</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#172235;--muted:#65748a;--line:#dce4ee;--blue:#2859d8;--blueLite:#edf2ff;--green:#13845c;--greenLite:#eaf9f2;--orange:#bd6818;--orangeLite:#fff4e7;--red:#bd3945}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.5 system-ui,Segoe UI,Arial,sans-serif;color:var(--ink)}.wrap{max-width:1180px;margin:auto;padding:25px 17px 45px}h1{font-size:clamp(25px,4vw,36px);line-height:1.15;margin:0 0 8px}.sub{color:var(--muted);margin:0 0 20px}.tabs,.controls{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.tab,button{border:1px solid var(--line);border-radius:10px;padding:10px 13px;background:white;color:var(--ink);font:inherit;cursor:pointer}.tab.active,.primary{background:var(--blue);border-color:var(--blue);color:white}button:disabled{opacity:.45;cursor:not-allowed}.grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(270px,.8fr);gap:15px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 3px 12px #15294b08}.card h2{font-size:18px;margin:0 0 10px}.pill{display:inline-block;border-radius:99px;padding:3px 9px;background:#eef2f7;color:#526175;font-size:12px}.pipeline{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0}.lane{min-width:0;border:1px solid var(--line);border-radius:13px;padding:10px;background:#fbfcff;min-height:180px;position:relative}.lane h3{font-size:13px;margin:0 0 9px;display:flex;align-items:center;gap:6px}.lane .laneHint{font-size:11px;color:var(--muted);margin:8px 0 0}.laneBody{display:flex;flex-direction:column;gap:7px;min-height:75px}.task{border:1px solid #d7e0ed;border-radius:10px;padding:8px 9px;background:#fff;position:relative;min-width:0;transition:transform .25s,box-shadow .25s}.task .id{font-weight:800;font-size:13px}
+.task .removeTask{float:right;border:1px solid #efc4c8;background:#fff5f5;color:#ad2634;border-radius:7px;padding:2px 6px;font-size:10px;line-height:1.5;cursor:pointer}
+.task .removeTask:hover{background:#ffe5e7}
+.task .removeTask:focus{outline:2px solid #bd394555}.task .desc{font-size:11px;color:var(--muted);overflow-wrap:anywhere}.priority{display:inline-block;font-size:11px;border-radius:20px;background:var(--blueLite);color:var(--blue);padding:1px 7px;margin-top:4px}.task.next{border:2px solid var(--green);background:var(--greenLite);box-shadow:0 0 0 2px #13845c18}.task.next:after{content:'NEXT';position:absolute;right:6px;top:5px;color:var(--green);font-size:9px;font-weight:900}.task.running{border:2px solid var(--orange);background:var(--orangeLite);animation:pulse 1s infinite alternate}.task.done{border-color:#a7ddc4;background:#f1fbf6}.task.done .priority{background:#d8f4e5;color:var(--green)}@keyframes pulse{from{box-shadow:0 0 0 0 #bd681822;transform:scale(1)}to{box-shadow:0 0 0 5px #bd68180b;transform:scale(1.025)}}.flowArrow{font-size:19px;color:#8a98ab;text-align:center;margin:2px 0}.empty{font-size:12px;color:#8491a3;padding:12px 4px;border:1px dashed #d8e0eb;border-radius:9px;text-align:center}.status{padding:11px 13px;border-radius:10px;background:#eef3ff;color:#294c9f;margin:12px 0;font-size:13px}.status.success{background:var(--greenLite);color:#126b4b}.status.warn{background:var(--orangeLite);color:#8a4a0c}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:13px 0}.stat{background:#f7f9fc;border-radius:10px;padding:9px}.stat strong{display:block;font-size:21px}.stat span{font-size:11px;color:var(--muted)}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:9px}.field label{font-size:12px;font-weight:750;color:var(--muted)}input{width:100%;border:1px solid #aebbd0;border-radius:9px;padding:10px;font:inherit;background:#fff;color:#172235;caret-color:#2859d8}
+input::placeholder{color:#7b8798;opacity:1}
+input:focus{outline:3px solid #2859d833;border-color:#2859d8;background:#fff;color:#172235}
+input[type=number]{color:#172235}
+.field label{color:#425166}.formrow{display:grid;grid-template-columns:1fr 1fr;gap:9px}.note{font-size:12px;color:var(--muted);margin:8px 0}.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:8px 0}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}.log{max-height:155px;overflow:auto;padding-left:20px;margin:0}.log li{margin:5px 0;color:#425166;font-size:12px}.complexity{width:100%;border-collapse:collapse;font-size:13px}.complexity th,.complexity td{text-align:left;padding:9px 7px;border-bottom:1px solid var(--line)}.complexity th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px}.wide{margin-top:15px}.concept{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.concept div{background:#f7f9fc;border-radius:10px;padding:10px;font-size:12px}.concept b{display:block;margin-bottom:3px}.footer{margin-top:15px;color:var(--muted);font-size:12px}@media(max-width:780px){.grid{grid-template-columns:1fr}.pipeline{grid-template-columns:1fr}.lane{min-height:100px}.laneBody{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.concept{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body><main class="wrap">
+<h1>Priority-Based Task Scheduling</h1>
+<p class="sub">Animated data-structure visualizer · Priority 10 is highest · Equal priorities follow FIFO (first arrived, first served).</p>
+<div class="tabs"><button class="tab active" data-mode="unsorted">1. Unsorted List</button><button class="tab" data-mode="sorted">2. Sorted List</button><button class="tab" data-mode="heap">3. Binary Heap</button></div>
+<div class="grid">
+<section class="card">
+<h2 id="structureTitle">Unsorted list <span class="pill">arrival order</span></h2>
+<p class="note" id="methodNote">Tasks stay in arrival order. The scheduler scans the list to find the highest priority.</p>
+<div class="pipeline">
+ <div class="lane"><h3>📥 Waiting tasks <span class="pill" id="waitingCount">6</span></h3><div class="laneBody" id="queue"></div><p class="laneHint" id="queueHint">The green task is the next one selected.</p></div>
+ <div class="lane"><h3>⚙️ CPU / Running</h3><div class="laneBody" id="running"><div class="empty">No task running</div></div><p class="laneHint">Selected task moves here first.</p></div>
+ <div class="lane"><h3>📤 Completed / Out</h3><div class="laneBody" id="completed"><div class="empty">No completed tasks yet</div></div><p class="laneHint">After processing, the task leaves the queue.</p></div>
+</div>
+<div class="legend"><span><i class="dot" style="background:#13845c"></i>Next to run</span><span><i class="dot" style="background:#bd6818"></i>Currently running</span><span><i class="dot" style="background:#a7ddc4"></i>Finished</span></div>
+<div id="status" class="status">Ready. Click “Run next task” to watch a task move from Waiting → Running → Completed.</div>
+<div class="controls"><button class="primary" id="runNext">▶ Run next task</button><button id="arrive">⚡ Add urgent task (priority 10)</button><button id="reset">↻ Reset demo</button></div>
+<div class="stats"><div class="stat"><strong id="pending">6</strong><span>Waiting</span></div><div class="stat"><strong id="processed">0</strong><span>Completed</span></div><div class="stat"><strong id="ops">0</strong><span>Selection checks*</span></div></div>
+<h2>What just happened?</h2><p id="explain" class="note">The next task is highlighted in green. Run it to see the movement.</p>
+<h2 style="margin-top:14px">Event log</h2><ol id="log" class="log"></ol>
+</section>
+<aside class="card">
+<h2>Add a task</h2>
+<div class="field"><label for="taskName">Task name</label><input id="taskName" maxlength="36" placeholder="e.g. Database backup"></div>
+<div class="formrow"><div class="field"><label for="taskPriority">Priority (1–10)</label><input id="taskPriority" type="number" min="1" max="10" value="5"></div><div class="field"><label for="taskId">Task ID</label><input id="taskId" value="T7" maxlength="8"></div></div>
+<button id="addTask" class="primary">＋ Add to waiting queue</button>
+<p class="note">Try adding priority 9, then click Run next task. It should run before priority 8 and below no higher-priority task.</p>
+<hr style="border:0;border-top:1px solid var(--line);margin:17px 0">
+<h2>How the approach works</h2>
+<div id="approachExplain" class="status">Unsorted list: scan every waiting task and choose the highest priority.</div>
+<h2>FIFO tie-breaking</h2>
+<p class="note">If two tasks have the same priority, the one that arrived first runs first. Example: T5 and T6 both have priority 5, so T5 is selected before T6.</p>
+<h2>Priority key</h2>
+<p class="note">Priority 10 = urgent; priority 1 = low. The visualizer uses the same scheduling rule for all three data structures, so the selected task should be the same.</p>
+</aside></div>
+<section class="card wide"><h2>Time-complexity comparison</h2>
+<table class="complexity"><thead><tr><th>Approach</th><th>Insert</th><th>Find next</th><th>Remove next</th><th>Core idea</th></tr></thead><tbody>
+<tr><td><b>Unsorted list</b></td><td>O(1)</td><td>O(n)</td><td>O(n)*</td><td>Append quickly; scan to find the best task.</td></tr>
+<tr><td><b>Sorted list</b></td><td>O(n)</td><td>O(1)</td><td>O(1)</td><td>Keep highest priority at the front.</td></tr>
+<tr><td><b>Binary heap</b></td><td>O(log n)</td><td>O(1)</td><td>O(log n)</td><td>Highest-priority task stays at the root.</td></tr></tbody></table>
+<p class="note">*An array-backed unsorted list may need O(n) to locate/remove the selected item. “Selection checks” is an illustrative counter, not a precise machine-instruction count.</p>
+<div class="concept"><div><b>1. Waiting</b>Tasks are waiting to be scheduled. Green marks the next task that should run.</div><div><b>2. Running</b>When you click Run next task, the chosen task animates into the CPU lane.</div><div><b>3. Completed / Out</b>After a short pause, it moves to Completed and is removed from the waiting queue.</div></div>
+</section>
+<p class="footer">Demonstration rule: each arriving task gets a sequence number. Higher priority wins; for equal priority, the smaller arrival number wins (FIFO).</p>
+</main>
+<script>
+const initial=[{id:'T1',name:'System update',priority:4},{id:'T2',name:'Email sync',priority:2},{id:'T3',name:'Security scan',priority:8},{id:'T4',name:'File indexing',priority:3},{id:'T5',name:'Memory cleanup',priority:5},{id:'T6',name:'Database backup',priority:5}];
+let mode='unsorted',tasks=[],seq=0,processed=0,ops=0,arrivalDemo=0,logEntries=[],completed=[],busy=false;
+const $=id=>document.getElementById(id);
+function reset(){busy=false;tasks=initial.map((t,i)=>({...t,seq:i}));seq=initial.length;processed=0;ops=0;arrivalDemo=0;completed=[];logEntries=['Six sample tasks arrived. T3 has the highest priority (8). T5 arrived before T6, so T5 wins their priority-5 tie.'];$('running').innerHTML='<div class="empty">No task running</div>';$('status').className='status';$('status').textContent='Ready. Click “Run next task” to watch a task move from Waiting → Running → Completed.';$('explain').textContent='The next task is highlighted in green. Run it to see the movement.';render()}
+function compare(a,b){return b.priority-a.priority||a.seq-b.seq}
+function down(a,i){while(true){let best=i,l=2*i+1,r=l+1;if(l<a.length&&compare(a[l],a[best])<0)best=l;if(r<a.length&&compare(a[r],a[best])<0)best=r;if(best===i)break;[a[i],a[best]]=[a[best],a[i]];down(a,best)}}
+function heapify(arr){let a=arr.slice();for(let i=Math.floor(a.length/2)-1;i>=0;i--)down(a,i);return a}
+function ordered(){if(mode==='sorted')return tasks.slice().sort(compare);if(mode==='heap')return heapify(tasks);return tasks.slice()}
+function getNext(){if(!tasks.length)return null;if(mode==='unsorted'){ops+=tasks.length;return tasks.reduce((best,t)=>compare(t,best)<0?t:best)}ops+=1;return ordered()[0]}
+function peekNext(){return tasks.length?tasks.slice().sort(compare)[0]:null}
+function taskHTML(t,cls=''){return `<div class="task ${cls}"><div class="id">${esc(t.id)} <span style="font-weight:500;color:#758399">#${t.seq+1}</span></div><div class="desc">${esc(t.name)}</div><span class="priority">Priority ${t.priority}</span></div>`}
+function render(){
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+ const view=ordered(),next=peekNext();
+ const title=mode==='unsorted'?'Unsorted list':mode==='sorted'?'Sorted list':'Binary max-heap';
+ $('structureTitle').innerHTML=title+' <span class="pill">'+(mode==='heap'?'heap order':mode==='sorted'?'priority order':'arrival order')+'</span>';
+ $('methodNote').textContent=mode==='unsorted'?'Tasks stay in arrival order. Each selection scans all waiting tasks to find the highest priority.':mode==='sorted'?'Tasks are kept from highest to lowest priority. The first task is selected immediately.':'The highest-priority task is kept at the heap root. Removing it requires rebalancing the heap.';
+ $('queue').innerHTML=view.length?view.map(t=>taskHTML(t,next&&t.id===next.id?'next':'').replace('<div class="id">', `<button class="removeTask" data-remove="${esc(t.id)}" title="Remove ${esc(t.id)} from waiting queue">Remove</button><div class="id">`)).join(''):'<div class="empty">No waiting tasks</div>';
+ $('queue').querySelectorAll('[data-remove]').forEach(btn=>btn.addEventListener('click',()=>removeWaitingTask(btn.dataset.remove)));
+ $('completed').innerHTML=completed.length?completed.slice(-5).reverse().map(t=>taskHTML(t,'done')).join(''):'<div class="empty">No completed tasks yet</div>';
+ $('waitingCount').textContent=tasks.length;$('pending').textContent=tasks.length;$('processed').textContent=processed;$('ops').textContent=ops;
+ $('runNext').disabled=!tasks.length||busy;
+ $('approachExplain').textContent=mode==='unsorted'?'Unsorted list: add at the end; scan the entire list to identify the best task.':mode==='sorted'?'Sorted list: insert in priority order; the first task is always the next task.':'Binary heap: the root holds the best task; after removal, sift down to restore heap order.';
+ $('log').innerHTML=logEntries.slice(-25).map(x=>'<li>'+esc(x)+'</li>').join('');
+ if(!busy && next)$('queueHint').textContent=`${next.id} is next: priority ${next.priority}.`;
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function addTask(id,name,priority){if(!id.trim()||!name.trim()){alert('Enter both a task ID and task name.');return}if(tasks.some(t=>t.id.toLowerCase()===id.trim().toLowerCase())||completed.some(t=>t.id.toLowerCase()===id.trim().toLowerCase())){alert('That task ID already exists. Choose a unique ID.');return}tasks.push({id:id.trim(),name:name.trim(),priority:Number(priority),seq:seq++});logEntries.push(`${id.trim()} ARRIVED → Waiting queue (priority ${priority}).`);$('status').className='status';$('status').textContent=`${id.trim()} entered the waiting queue with priority ${priority}. The next-task highlight has been recalculated.`;$('explain').textContent=`Arrival: ${id.trim()} was added. ${priority===10?'As priority 10, it should be selected before all lower-priority tasks.':'The scheduler compares its priority with the other waiting tasks.'}`;render()}
+function removeWaitingTask(id){
+ if(busy)return;
+ const task=tasks.find(t=>t.id===id);
+ if(!task)return;
+ tasks=tasks.filter(t=>t.id!==id);
+ logEntries.push(`REMOVED ${task.id} (priority ${task.priority}) manually from Waiting queue; it was not executed.`);
+ $('status').className='status warn';
+ $('status').textContent=`${task.id} was removed from the waiting queue without running.`;
+ $('explain').textContent=`Manual removal: ${task.id} has been taken out of the waiting queue. It was not sent to the CPU and was not marked as completed.`;
+ render();
+}
+function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+async function runNext(){if(busy||!tasks.length)return;busy=true;const t=getNext();render();$('runNext').disabled=true;
+ $('status').className='status warn';$('status').textContent=`Selecting ${t.id}… The scheduler chose priority ${t.priority}, with FIFO used if there was a tie.`;
+ $('explain').textContent=mode==='unsorted'?`Scan step: compare priorities across the waiting list. ${t.id} wins because it has the highest priority (or arrived earliest among tied tasks).`:mode==='sorted'?`Front-of-list step: ${t.id} is at the front because the list is sorted by priority.`:`Heap step: ${t.id} is at the root, so it is the next task selected.`;
+ await sleep(450);
+ $('running').innerHTML=taskHTML(t,'running');$('status').textContent=`${t.id} moved from Waiting → CPU / Running. The task is being processed…`;logEntries.push(`SELECTED ${t.id} (priority ${t.priority}) → moved to CPU / Running.`);render();$('running').innerHTML=taskHTML(t,'running');
+ await sleep(1100);
+ tasks=tasks.filter(x=>x.id!==t.id);completed.push(t);processed++;$('running').innerHTML='<div class="empty">No task running</div>';logEntries.push(`COMPLETED ${t.id} → removed from waiting queue and moved to Completed / Out.`);$('status').className='status success';$('status').textContent=`${t.id} finished and moved to Completed / Out. It is no longer in the waiting queue.`;$('explain').textContent=`Removal step: ${t.id} is now completed. ${tasks.length?`The next task will be ${peekNext().id} (priority ${peekNext().priority}).`:'There are no waiting tasks left.'}`;busy=false;render()}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{if(busy)return;mode=b.dataset.mode;logEntries.push(`Switched to ${b.textContent}. Same pending tasks, different data-structure organization.`);$('status').className='status';$('status').textContent=`Now viewing ${b.textContent}. Watch how the waiting tasks are organized; the priority rule stays the same.`;render()}));
+$('runNext').addEventListener('click',runNext);
+$('arrive').addEventListener('click',()=>{arrivalDemo++;let id='HP'+arrivalDemo;addTask(id,'Urgent system task',10);$('status').className='status warn';$('status').textContent=`⚡ ${id} arrived with priority 10. It should jump ahead of all lower-priority waiting tasks.`;$('explain').textContent=`Priority arrival: ${id} is now the next task (unless another priority-10 task arrived earlier). Click Run next task to watch it enter the CPU.`;render()});
+$('addTask').addEventListener('click',()=>{let p=Number($('taskPriority').value);if(!Number.isInteger(p)||p<1||p>10){alert('Priority must be a whole number from 1 to 10.');return}addTask($('taskId').value,$('taskName').value,p);$('taskName').value='';$('taskId').value='T'+(seq+1)});
+$('reset').addEventListener('click',reset);reset();
+</script></body></html>
